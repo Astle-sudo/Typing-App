@@ -1,116 +1,132 @@
 
 <script>
-    import '../app.css';
-    import Results from '../components/results.svelte'
-    
-    let codes = [32,188,190,191,189];
-    let [currentIndex,errors,speed] = [0,0,0];
-    let [key,typed] = ['',''];
-    let start,end,code,time,accuracy,active,state = 'false',color = 'yellow';
+    import '../app.css'
+
+    let code,start,end;
+    let status = false;
+    let [currentIndex,time,speed,errors,accuracy] = [0,0,0,0,0];
+    let codes = [32,188,190,191];
+    let color = 'lightgreen';
+    let [key,value,userInput] = ['',''];
     let para = 
-                'Lorem ipsum dolor sit amet consectetur, adipisicing elit. Voluptatibus inventore perspiciatis enim quibusdam cum ipsa labore ipsam quia reprehenderit reiciendis architecto facere, maiores consequuntur repellendus facilis itaque debitis, aliquam impedit?'
+                'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Dolor dolorum adipisci veniam. Ipsa quisquam dolorum excepturi consequatur voluptatum vitae nostrum adipisci similique, accusamus totam. Accusamus beatae possimus fuga id officiis.'
 
     function handleKeyDown (event) {
         if (event.which >= 65 && event.which <= 90 || codes.includes(event.which)) {
             key = event.key;
             code = event.which;
-        }
-        if (event.which == 32) {
-            event.preventDefault();
+            if (event.which == 32) {
+                userInput = '';
+            }
         }
     }
 
-    function showResults () {
-        state = true;
+    function typing () {
+        status = true
     }
-
-    function check (keyPressed,para) {
-        if (currentIndex == 0) {
-            start = new Date().getTime();
-        }
-        if (currentIndex == para.length-1) {
-            end = new Date().getTime();
-            setInterval (showResults,500)
-            time = Math.round((end-start)/1000);
-            accuracy =  Math.round(((para.length-errors)/para.length) * 100);
-            speed = Math.round((para.length/5)/((end-start)/60000));
-        }
-        if (keyPressed == para[currentIndex]) {
-            color = 'yellow';
-            currentIndex ++;
-        }
-        else {
-            color = 'red';
-            errors ++;
-        }
-    }
-    function reset () {
-        [currentIndex,errors,time] = [0,0,0];
-        [key,typed] = ['',''];
+    function notTyping () {
+        status = false;
     }
 
     $: {
         if (key) {
-            typed = para[currentIndex];
-            check(key,para);
+            if (status) {
+                if (currentIndex == 0) {
+                    start = new Date().getTime();
+                }
+                if (currentIndex == para.length-1) {
+                    end = new Date().getTime();
+                    accuracy = Math.round((para.length - errors)/para.length) * 100;
+                    time = Math.round((end-start)/1000);
+                    speed = Math.round((para.length/5)/((end-start)/60000));
+
+                }
+                if (key == para[currentIndex]) {
+                    color = 'lightgreen';
+                    currentIndex ++; 
+                    value += para[currentIndex-1];
+                }
+                else {
+                    color = 'red';
+                    errors ++;
+                }
+            }
         }
     }
-
 </script>
 
-{#if state == true}
-    <Results displayCover = 'block' displayBox = 'flex' accuracy = {accuracy} timeTaken = {time}
-    errors = {errors} speed = {speed}/>
-{/if}
-
-<div class="bg-blue-200 h-auto box my-4 border-2 border-sky-500">
-    <h1 class="text-sky-800 font-bold text-center">
-        Typing Test
-    </h1>
-    <p class="text-sky-800 font-normal text-center">
-        Start typing with the first letter of the paragraph. The results will appear after completion.
-    </p>
-</div>
-
-<div class="mx-80 my-20 font-bold color1">
-    {para}
-</div>
-
-<input class="font-bold" type="text" name="typed" value={typed} disabled>
-<br><br>
-<input style="color: {color};" class="font-bold" type="text" name="UserInput" value={key} disabled>
-
-<h1 class="pt-10 font-bold text-center text-red-700">
-    Errors : {errors}
+<h1 class="title font-bold absolute">
+    Typing test
 </h1>
 
-<div class="pt-10 font-bold text-center">
-    <button on:click={reset} class="mx-2 px-2 py-1">
-        Reset
-    </button>
+<div class="placeholder mx-80 my-20 font-bold" data-placeholder={para}>
+    <textarea style="color: {color};" value={value}/> 
+    <input on:focus={typing} on:focusout={notTyping} type="text" bind:value = {userInput}> 
+    <a data-sveltekit-reload href='/' class="bg-black text-white p-1">Reset</a>
+</div>
+
+
+<div class="results bg-gray-100 text-gray font-800 text-center p-2">
+    <h1>Accuracy : {accuracy} %</h1>
+    <h1>Speed : {speed} <strong>WPM</strong></h1>
+    <h1>Time Taken : {time} <strong>S</strong></h1>
+    <h1>Erros : {errors}</h1>
 </div>
 
 <style>
-    :global(body) {
-        background-color: #000957;
-    }
-    .color1 {
-        color : #577BC1;
-    }
-    .box {
-        width: 20rem;
-        border-radius: 10px;
-        margin-left: 32rem;
+    @import url('https://fonts.googleapis.com/css2?family=Indie+Flower&family=Rampart+One&display=swap');
+
+    textarea {
+        resize: none;
+        width: 100%;
+        height: 80%;
+        user-select: none;
     }
     input {
-        margin: 0 0 0 36rem;
-        scale: 1.5;
+        border: 1px solid black;
+        font-weight: 600;
+        width: 50%;
+        margin: 0vh 0vw 0vh 11vw;
+
     }
-    button {
+    a {
         border-radius: 10px;
-        background-color: yellow;
-        color: #000957;
+    }
+    .placeholder {
+        position: relative;
+        width: 50vw;
+        height: 30vh;
+    }
+
+    .placeholder:focus {
+        outline: none;
+    }
+
+    .placeholder::after {
+        position: absolute;
+        left: 0;
+        top: 0;
+        content: attr(data-placeholder);
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    .results {
+        margin: 20vh 0vw 0vh 42vw;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 15vw;
+        height: 25vh;
+        scale: 1.5;
+        border: 2px solid gray;
+    }
+
+    .title {
+        scale: 1.5;
+        font-family: 'Indie Flower', cursive;
+        top: 1rem;
+        left: 38rem;
     }
 </style>
-
 <svelte:window on:keydown={handleKeyDown}/>
